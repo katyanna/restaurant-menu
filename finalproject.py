@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, render_template, redirect, url_for, request
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from database_setup import Base, Restaurant, MenuItem
@@ -13,23 +13,55 @@ session = DBSession()
 @app.route('/')
 @app.route('/restaurants/')
 def showRestaurants():
-    return "Lists all restaurants"
+    restaurants = session.query(Restaurant).all()
 
-@app.route('/restaurants/new/')
-def newRestaurants():
-    return "Create a restaurant"
+    return render_template('restaurants.html', restaurants = restaurants)
 
-@app.route('/restaurants/<int:restaurant_id>/edit/')
-def editRestaurants(restaurant_id):
-    return "Edit restaurant"
+@app.route('/restaurants/new/', methods=['GET', 'POST'])
+def newRestaurant():
+    if request.method == 'POST':
+        newRestaurant = Restaurant(name = request.form['name'])
+        session.add(newRestaurant)
+        session.commit()
 
-@app.route('/restaurants/<int:restaurant_id>/delete/')
-def deleteRestaurants(restaurant_id):
-    return "Delete restaurant"
+        return redirect(url_for('showRestaurants'))
+
+    else:
+        return render_template("new_restaurant.html")
+
+@app.route('/restaurants/<int:restaurant_id>/edit/', methods=['GET', 'POST'])
+def editRestaurant(restaurant_id):
+    editedRestaurant = session.query(Restaurant).filter_by(id=restaurant_id).one()
+    if request.method == 'POST':
+        if request.form['name']:
+            editedRestaurant.name = resquest.form['name']
+
+        session.add(editedRestaurant)
+        session.commit()
+
+        return redirect(url_for('showRestaurants'))
+
+    else:
+        return render_template("edit_restaurant.html", restaurant_id = restaurant_id, restaurant = editedRestaurant)
+
+@app.route('/restaurants/<int:restaurant_id>/delete/', methods=['GET', 'POST'])
+def deleteRestaurant(restaurant_id):
+    deletedRestaurant = session.query(Restaurant).filter_by(id=restaurant_id).one()
+    if request.method == 'POST':
+        session.delete(deletedRestaurant)
+        session.commit()
+
+        return redirect(url_for('showRestaurants'))
+
+    else:
+        return render_template("delete_restaurant.html", restaurant_id = restaurant_id, restaurant = deletedRestaurant)
 
 @app.route('/restaurants/<int:restaurant_id>/menu/')
 def showMenu(restaurant_id):
-    return "Lists restaurant's menu"
+    restaurant = session.query(Restaurant).filter_by(id=restaurant_id).one()
+    items = session.query(MenuItem).all()
+
+    return render_template("menu.html", restaurant_id = restaurant_id, restaurant = restaurant, items = items)
 
 @app.route('/restaurants/<int:restaurant_id>/menu/new/')
 def newMenuItem(restaurant_id):

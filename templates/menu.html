@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2>{{ restaurant.name }}</h2>
+
+<a href="{{ url_for('showMenu', restaurant_id = restaurant.id) }}">Create menu item</a>
+
+</br></br>
+
+{% for item in items %}
+  <p>{{ item.name }}</p>
+  <p>{{ item.price }}</p>
+  <p>{{ item.description }}</p>
+
+  <a href="{{ url_for('editMenuItem', restaurant_id = restaurant.id, item_id = item.id) }}">Edit</a>
+  <a href='{{ url_for('deleteMenuItem', restaurant_id = restaurant.id, item_id = item.id) }}'>Delete</a>
+
+  </br></br>
+{% endfor %}
+
+{% endblock %}
